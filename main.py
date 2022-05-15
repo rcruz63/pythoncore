@@ -61,12 +61,16 @@ waiter.wait(InstanceIds=ids)
 
 # Listar las instancias que estan corriendo
 ids = []
+InstanceIds=[]
 instances=ec2.instances.filter(
     Filters=[{'Name':'instance-state-name','Values':['running']}])
 
 for inst in instances:
     ids.append(inst.id)
     print("ID: %s, Type: %s" %(inst.id, inst.instance_type))
+    # TODO: Esto tiene un problema coge todas las Instancias corriendo, no solo las que me interesa meter en el balanceador
+    instId={'InstanceId':inst.id}
+    InstanceIds.append(instId)
 
 input ("Pulsa para parar las instancias")
 
