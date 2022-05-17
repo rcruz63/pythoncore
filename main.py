@@ -2,6 +2,7 @@ from os import chmod, stat
 import boto3
 import sys
 from whatIsMyIP import whatIsMyIP
+from elb import elb_manager
 
 
 # Creamos un Security Group
@@ -11,6 +12,8 @@ conn = boto3.client('ec2')
 sg=conn.create_security_group(GroupName='mywebgroup', Description='SG for Web')
 
 groupid=sg['GroupId']
+groupIds=[]
+groupIds.append(groupid)
 
 # print(groupid)
 input("SG creado: %s" % groupid)
@@ -55,31 +58,44 @@ instance = ec2.create_instances(ImageId='ami-0c1bc246476a5572b',
 # TODO: Esperar a que esté corriendo
 waiter = conn.get_waiter('instance_running')
 ids = []
+InstanceIds=[]
 for i in instance:
     ids.append(i.id)
+    # Para cada instancia se genera un diccionario para añadirlo al balanceador CLASSIC
+    instId={'InstanceId':i.id}
+    InstanceIds.append(instId)
 waiter.wait(InstanceIds=ids)
 
 # Listar las instancias que estan corriendo
-ids = []
-InstanceIds=[]
+id2s = []
+
+# TODO: Este filtro se carga todas las instancias running, cuidado!!
 instances=ec2.instances.filter(
     Filters=[{'Name':'instance-state-name','Values':['running']}])
 
 for inst in instances:
-    ids.append(inst.id)
+    id2s.append(inst.id)
     print("ID: %s, Type: %s" %(inst.id, inst.instance_type))
-    # TODO: Esto tiene un problema coge todas las Instancias corriendo, no solo las que me interesa meter en el balanceador
-    instId={'InstanceId':inst.id}
-    InstanceIds.append(instId)
+
+## Añadir el balanceador
+
+elb_manager(InstanceIds, groupIds)
 
 input ("Pulsa para parar las instancias")
 
 # Se paran las instancias
-ec2.instances.filter(InstanceIds=ids).stop()
+ec2.instances.filter(InstanceIds=id2s).stop()
 
 input("Pulsa para terminar las instancias")
 # terminamos las instancias ¿y si quisieramos esperar a que estuvieran paradas?
 # TODO: Chequear el estado de la instancia 
 # TODO: conn.describe_instance_status(Filters=[{'Name':'','Values'} | InstanceIds ...])
-ec2.instances.filter(InstanceIds=ids).terminate()
-    
+ec2.instances.filter(InstanceIds=id2s).terminate()
+conn.delete_key_pair(
+    KeyName='webkey',
+)
+waiter=conn.get_waiter('instance_terminated')
+waiter.wait(InstanceIds=ids)
+conn.delete_security_group(
+    GroupId=groupid,
+)

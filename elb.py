@@ -22,9 +22,9 @@ def elb_manager(InstanceIds, sgId):
 
     # Apply the security Group
     elb.apply_security_groups_to_load_balancer(
-        LoadBlancerName='nixlb2',
+        LoadBalancerName='nixlb2',
         # TODO: sgId como una lista no como un valor. requiere cambios en main
-        SecurityGroups=[sgId]
+        SecurityGroups=sgId
     )
 
     health_check=elb.configure_health_check(
@@ -44,3 +44,14 @@ def elb_manager(InstanceIds, sgId):
         LoadBalancerName='nixlb2',
         Instances=InstanceIds
     )
+
+    print(attachinst)
+
+    input("Presiona una tecla para desregistrar las instancias")
+    elb.deregister_instances_from_load_balancer(
+        LoadBalancerName='nixlb2',
+        Instances=InstanceIds
+    )
+
+    input("Presiona una tecla para eliminar el Load Balancer")
+    elb.delete_load_balancer(LoadBalancerName='nixlb2')
