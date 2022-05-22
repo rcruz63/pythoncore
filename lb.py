@@ -1,7 +1,10 @@
 import boto3
 
+# CONST
+from env import *
+
 # Create a CLASSIC Load Balancer
-def elb_manager(Name, InstanceIds, sgId, AZ):
+def elb_manager(sgId):
     elb = boto3.client('elb')
 
     lbl=elb.create_load_balancer(
@@ -38,20 +41,3 @@ def elb_manager(Name, InstanceIds, sgId, AZ):
             'HealthyThreshold': 5 # es el numero de exitos consecutivos antes de poner la instancia como disponible
         }
     )
-
-    # Attach an instance
-    attachinst=elb.register_instances_with_load_balancer(
-        LoadBalancerName='lb'+Name,
-        Instances=InstanceIds
-    )
-
-    print(attachinst)
-
-    input("Presiona una tecla para desregistrar las instancias")
-    elb.deregister_instances_from_load_balancer(
-        LoadBalancerName='lb'+Name,
-        Instances=InstanceIds
-    )
-
-    input("Presiona una tecla para eliminar el Load Balancer")
-    elb.delete_load_balancer(LoadBalancerName='lb'+Name)

@@ -4,12 +4,14 @@ import sys
 from whatIsMyIP import whatIsMyIP
 from elb import elb_manager
 
+# CONST
+from env import *
 
 # Creamos un Security Group
 conn = boto3.client('ec2')
 
 # TODO: hay que comprobar que no exista
-sg=conn.create_security_group(GroupName='mywebgroup', Description='SG for Web')
+sg=conn.create_security_group(GroupName='sg'+Name, Description='SG for Web')
 
 groupid=sg['GroupId']
 groupIds=[]
@@ -34,23 +36,23 @@ conn.authorize_security_group_ingress(GroupId=groupid, IpProtocol='tcp', CidrIp=
 
 # Creamos una SSH KEY y la salvamos a disco
 # TODO: Hay que comprobar que no exista
-keypair=conn.create_key_pair(KeyName='webkey')
+keypair=conn.create_key_pair(KeyName='kp'+Name)
 print (keypair['KeyMaterial'])
 
-with open("webkey.pem", "a") as f:
-    chmod("webkey.pem", 0o0600)
+with open('kp'+Name+".pem", "a") as f:
+    chmod('kp'+Name+".pem", 0o0600)
     f.write(keypair['KeyMaterial'])
 
-input ("Hey SSH creada: webkey.pem")
+input ("Hey SSH creada: kp"+Name+".pem")
 
 # Creamos una instancia ec2
 ec2 = boto3.resource('ec2')
-instance = ec2.create_instances(ImageId='ami-0c1bc246476a5572b', 
+instance = ec2.create_instances(ImageId=ImageId, 
                                 MinCount=1, 
                                 MaxCount=1,
-                                SecurityGroups=['mywebgroup'],
-                                KeyName='webkey',
-                                InstanceType='t3.micro')
+                                SecurityGroups=['sg'+Name],
+                                KeyName='kp'+Name+".pem",
+                                InstanceType=InstanceType)
 
 # print(instance)
 # TODO: terminar si falla
@@ -79,7 +81,7 @@ for inst in instances:
 
 ## Añadir el balanceador
 
-elb_manager(InstanceIds, groupIds)
+elb_manager(Name, InstanceIds, groupIds)
 
 input ("Pulsa para parar las instancias")
 
@@ -92,7 +94,7 @@ input("Pulsa para terminar las instancias")
 # TODO: conn.describe_instance_status(Filters=[{'Name':'','Values'} | InstanceIds ...])
 ec2.instances.filter(InstanceIds=id2s).terminate()
 conn.delete_key_pair(
-    KeyName='webkey',
+    KeyName='kp'+Name,
 )
 waiter=conn.get_waiter('instance_terminated')
 waiter.wait(InstanceIds=ids)
