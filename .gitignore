@@ -138,3 +138,5 @@ dmypy.json
 # Onedrive conflicts
 .git-OLD/
 .myenv_old/
+
+# tempfiles
