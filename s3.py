@@ -7,9 +7,16 @@ from env import *
 def s3_manager():
 
     # Create a Bucket
-    s3client = boto3.client('s3')
+    # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/s3-example-creating-buckets.html
+    s3client = boto3.client('s3', region_name=region)
+    # Tras el error: Regions outside of us-east-1 require the appropriate LocationConstraint 
+    # to be specified in order to create the bucket in the desired region
+    location = {'LocationConstraint': region}
     bucketname="{name}bucket{random:07d}".format(name=Name, random=random.randint(0, 999999))
-    s3client.create_bucket(bucketname)
+    s3client.create_bucket(
+        Bucket=bucketname,
+        CreateBucketConfiguration=location
+    )
 
     # Put an Objet into the bucket 
     # TIP: Para crearlo open("hello.txt","w").write("Hello Dolly!")
@@ -20,7 +27,7 @@ def s3_manager():
 
     print(s3client.get_object(
         Bucket=bucketname,
-        key=file
+        Key=file
     ))
     
     print(s3client.get_bucket_acl(
@@ -49,6 +56,8 @@ def s3_manager():
         Bucket=bucketname,
         Key=file
     )
+
+    input("Pulsa para borrar")
 
     buckets=s3res.buckets.all()
     for bucket in buckets:
