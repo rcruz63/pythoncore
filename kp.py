@@ -6,11 +6,13 @@ from env import *
 def keypair_manager() -> str:
 
     conn = boto3.client('ec2')
-    keypair=conn.create_key_pair(KeyName='kp'+Name)
+    key_name='kp'+Name
+
+    keypair=conn.create_key_pair(KeyName=key_name)
     print (keypair['KeyMaterial'])
 
-    with open('kp'+Name+".pem", "a") as f:
-        chmod('kp'+Name+".pem", 0o0600)
+    with open(key_name+".pem", "a") as f:
+        chmod(key_name+".pem", 0o0600)
         f.write(keypair['KeyMaterial'])
     
-    return 'kp'+Name
+    return key_name
