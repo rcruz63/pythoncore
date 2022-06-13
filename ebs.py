@@ -10,6 +10,7 @@ from env import *
 # Client version
 # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html#EC2.Client.create_volume
 def createEBS(AZ0, VolumeType, Size) -> str:
+    # TODO: Añadir tag 
     ec2=boto3.resource('ec2')
     vol=ec2.create_volume(
         AvailabilityZone=AZ0,
@@ -18,13 +19,45 @@ def createEBS(AZ0, VolumeType, Size) -> str:
     )
     return vol.id
 
+def createEBS(AZ0, VolumeType, Size, Tag) -> str:
+    ec2=boto3.resource('ec2')
+    tags={'ResourceType': 'volume',
+            'Tags': [{'Key': 'Name', 'Value': Tag}]}
+    vol=ec2.create_volume(
+        AvailabilityZone=AZ0,
+        Size=Size,
+        VolumeType=VolumeType,
+        TagSpecifications=tags
+    )
+    return vol.id
 
 def listEBS() -> list:
+    # TODO: filtrar por tag
     ec2=boto3.resource('ec2')
     vols=ec2.volumes.all()
     for vol in vols:
         print (vol.id, vol.state)
     return vols
+
+# List the volumes with a tag
+def listEBSByTag(Tag):
+    ec2=boto3.resource('ec2')
+    vols=ec2.volumes.all()
+    for vol in vols:
+        for tag in vol.tags:
+            if tag['Key'] == 'Name' and tag['Value'] == Tag:
+                return vol.id
+
+# listar los snapshot de una volumen
+def listSnapshot(VolumeId):
+    ec2=boto3.resource('ec2')
+    vol=ec2.Volume(VolumeId)
+    snaps=vol.snapshots.all()
+    for snap in snaps:
+        print (snap.id, snap.state)
+    return snaps
+
+
 
 def attachEBS(InstanceId):
     ec2=boto3.resource('ec2')

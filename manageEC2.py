@@ -6,7 +6,8 @@ from env import *
 
 def createEC2(name:str, ami:str, instance_type:str, key_name:str, security_group_ids:list) -> str:
     ec2 = boto3.client('ec2')
-    tags=[{'Key': 'Name', 'Value': name}]
+    tags={'ResourceType': 'instance',
+            'Tags': [{'Key': 'Name', 'Value': name}]}
     response = ec2.run_instances(
         ImageId=ami,
         InstanceType=instance_type,
