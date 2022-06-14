@@ -29,6 +29,11 @@ def createEBS(AZ0, VolumeType, Size, Tag) -> str:
         VolumeType=VolumeType,
         TagSpecifications=tags
     )
+
+    # wait for the volume to be available
+    waiter = ec2.get_waiter('volume_available')
+    waiter.wait(VolumeIds=[vol.id])
+    
     return vol.id
 
 def listEBS() -> list:

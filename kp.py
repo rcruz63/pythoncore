@@ -1,9 +1,10 @@
 import boto3
+from os import chmod, stat
 
 #CONST
 from env import *
 
-def keypair_manager() -> str:
+def createKP() -> str:
 
     conn = boto3.client('ec2')
     key_name='kp'+Name
@@ -16,3 +17,8 @@ def keypair_manager() -> str:
         f.write(keypair['KeyMaterial'])
     
     return key_name
+
+def deleteKP(key_name: str) -> None:
+
+    conn = boto3.client('ec2')
+    conn.delete_key_pair(KeyName=key_name)
