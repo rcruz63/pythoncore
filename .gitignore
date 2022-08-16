@@ -139,4 +139,6 @@ dmypy.json
 .git-OLD/
 .myenv_old/
 
-# tempfiles
+# VS config files
+.DS_Store
+.vscode/
