@@ -40,7 +40,7 @@ input("Press Enter to continue...")
 # Stop EC2
 stopEC2(instance.id)
 deleteKP(
-        KeyName='kp'+name,
+        KeyName='kp'+Name,
     )
 deleteSG(
     GroupId=sgIds,
