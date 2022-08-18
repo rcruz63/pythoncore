@@ -10,7 +10,7 @@ from sg import createSG, deleteSG
 from ebs import *
 
 # import Key Manager
-from kp import createKP, dele, deleteKP
+from kp import createKP, deleteKP
 
 # import EC2 Manager
 from manageEC2 import createEC2, selectInstanceTag, stopEC2, cleanEC2
